@@ -144,24 +144,22 @@ if (hasLessDir) {
 // FIXME dir is getting normalized to a relative path and removing parent location references; set it explicitly for now
 bundleSpec.bundleInDir = jsDestDir;
 
-gulp.task('local-rebundle', function() {
-	return runSequence('jsx-lint', 'lint', 'copy-less-sources', 'copy-js-sources', 'copy-jsx-sources','rebundle');
-});
-
 gulp.task('local-bundle', function() {
-	return runSequence('jsx-lint', 'lint', 'copy-less-sources', 'copy-js-sources', 'copy-jsx-sources','bundle');
+	return runSequence('jsx-lint', 'lint', 'copy-less-sources', 'copy-js-sources', 'copy-jsx-sources', 'bundle');
 });
 
 gulp.task('js:watch', function() {
-	gulp.watch(jsSourceDir + '/**/*.js', ['local-rebundle']);
+	gulp.watch(jsSourceDir + '/**/*.js', ['local-bundle']);
 });
 
 gulp.task('jsx:watch', function() {
-	gulp.watch(jsxSourceDir + '/**/*.*', ['local-rebundle']);
+	gulp.watch(jsxSourceDir + '/**/*.*', ['local-bundle']);
 });
 
-gulp.task('hbs:watch', function() {
-	gulp.watch(jsSourceDir + '/**/*.hbs', ['local-rebundle']);
+gulp.task('less:watch', function() {
+	gulp.watch(lessSourceDir + '/**/*.less', function() {
+		return runSequence('copy-less-sources', 'bundle');
+	});
 });
 
 gulp.task('scss', function(){
@@ -193,19 +191,19 @@ gulp.task("jsx-lint", function() {
 });
 
 gulp.task('resources:watch', function() {
-	gulp.watch(jsDestDir + '/*.*', ['copy-to-resources']);
+	gulp.watch(jsDestDir + '/**/*.*', ['copy-to-resources']);
 });
 
 gulp.task('copy-to-resources', function() {
-	return gulp.src(jsDestDir + '/*.*')
+	return gulp.src(jsDestDir + '/**/*.*')
 	    .pipe(gulp.dest(destClassesDir));
 });
 
 // Use the predefined tasks from jenkins-js-builder.
-builder.defineTasks(['test', 'bundle', 'rebundle']);
+builder.defineTasks(['test', 'bundle']);
 
 // Watch Files For Changes
-gulp.task('watch', ['scss:watch', 'js:watch', 'jsx:watch', 'hbs:watch', 'resources:watch']);
+gulp.task('watch', ['scss:watch', 'less:watch', 'js:watch', 'jsx:watch']);
 
 gulp.task('default', ['scss', 'local-bundle']);
 
